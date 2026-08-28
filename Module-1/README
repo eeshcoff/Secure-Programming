@@ -1,1 +1,16 @@
+The CIA Triad: There are 3 Pillars that make up the basis of security and secure programming practices.
 
+Confidentiality - Defined by access controls for private data, and practices prevent unauthorized access to sections of data. 
+Common tools for this are Encryption, and multi-factor-authorization
+
+Integrity - The process by which a system is able to guarentee that data is accurate, complete, and trustworthy. 
+The most common tools for this are digital signatures, and version control.
+
+Availability - The systems process that gives users "uptime" where systems are accesssible and prevents "downtime" where systems are inaccessible.
+The most common tools for this process are backups and redundancy.
+
+
+App Logic:
+
+The main core of the logic is centered on defining role based accessibility through permissions, 
+and each role provides the systems by which the program displays the necessary information.

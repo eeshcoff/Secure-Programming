@@ -14,3 +14,5 @@ App Logic:
 
 The main core of the logic is centered on defining role based accessibility through permissions, 
 and each role provides the systems by which the program displays the necessary information.
+
+For the moment in order to test each role, the user specific role planned to be loggin into needs to be hardcoded.

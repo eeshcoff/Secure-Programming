@@ -1,1 +1,8 @@
+For the file using asymmetrical encryption:
+This is a proof of concept directly using the RSA formula for encrypting. 
+In practice it would be asymmetric because the private key would never actually be shared with anyone.
 
+For the file using symmetrical encryption: 
+the code implements a caesar cipher to shift characters in a message
+As long as both parties are familiar with how the key is shifting the message they will both be able to read and send encrypted messages. 
+In order for this method to actually be secure, the key would need to be shared securely.

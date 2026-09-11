@@ -1,0 +1,188 @@
+#--------------------------------
+# Imports
+# --------------------------------
+
+
+import hashlib
+import os
+import random
+
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
+
+
+
+
+#--------------------------------
+# display_menu() and print_banner()
+#--------------------------------
+
+
+def display_menu():
+    print("\n--- Secure Encrption Toolkit ---")
+    print("1. Encrypt/Decrypt a message (substitution cipher)")
+    print("2. Hash a file (SHA-256)")
+    print("3. Sign a file")
+    print("4. Verify a signature")
+    print("5. Exit")
+
+def print_banner():
+
+    print(r"____________________________________________________________")
+    print(r"|||                                              __      |||")
+    print(r"|||     ____   ____   ___________ ___.__._______/  |_    |||")
+    print(r"|||   _/ __ \ /    \_/ ___\_  __ <   |  |\____ \   __\   |||")
+    print(r"|||   \  ___/|   |  \  \___|  | \/\___  ||  |_> >  |     |||")
+    print(r"|||    \___  >___|  /\___  >__|   / ____||   __/|__|     |||")
+    print(r"|||        \/     \/     \/       \/     |__|            |||")
+    print(r"|||______________________________________________________|||")
+
+
+#--------------------------------
+# cipher() and its helpers
+#--------------------------------
+
+def generate_substitution_key():
+    alphabet = list("abcdefghijklmnopqrstuvwxyz")
+    shuffled = alphabet.copy()
+    random.shuffle(shuffled)
+    return dict(zip(alphabet, shuffled))
+
+def substitution_encrypt(message, key_map):
+    result = ""
+    for char in message:
+        if char.isalpha():
+            lower_char = char.lower()
+            substituted = key_map[lower_char]
+            result += substituted.upper() if char.isupper() else substituted
+        else:
+            result += char
+    return result
+
+def substitution_decrypt(ciphertext, key_map):
+    reverse_map = {v: k for k, v in key_map.items()}
+    return substitution_encrypt(ciphertext, reverse_map)
+
+
+def cipher():
+    key_map = generate_substitution_key()
+    message = input("Message to encrypt: ").strip()
+
+    ciphertext = substitution_encrypt(message, key_map)
+    print(f"Key map: {key_map}")
+    print(f"Ciphertext: {ciphertext}")
+
+    decrypted = substitution_decrypt(ciphertext, key_map)
+    print(f"Decrypted: {decrypted}")
+    
+#--------------------------------
+# hashing() and its helpers
+#--------------------------------
+
+def hash_string(text):
+    sha256 = hashlib.sha256()
+    sha256.update(text.encode())
+    return sha256.hexdigest()
+
+def hash_file(filepath):
+    sha256 = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        sha256.update(f.read())
+    return sha256.hexdigest()
+
+def hashing():
+    print("1. Hash a message")
+    print("2. Hash a file")
+    choice = input("Choice: ").strip()
+
+    if choice == "1":
+        text = input("Enter text to hash: ").strip()
+        print(f"SHA-256: {hash_string(text)}")
+    elif choice == "2":
+        filepath = input("Path to file: ").strip().strip('"').strip("'")
+        if not os.path.exists(filepath):
+            print("File not found.")
+            return
+        print(f"SHA-256: {hash_file(filepath)}")
+    else:
+        print("Invalid choice.")
+
+
+#--------------------------------
+# signing() and its helpers
+# signing() uses the python cryptography library, which is backed by OpenSSL
+#--------------------------------
+
+keypairs = {}  # module-level storage so verify_signature() can access what signing() created
+
+def signing():
+    filepath = input("Path to file to sign: ").strip().strip('"').strip("'")
+    if not os.path.exists(filepath):
+        print("File not found.")
+        return
+
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    public_key = private_key.public_key()
+
+    with open(filepath, "rb") as f:
+        data = f.read()
+    signature = private_key.sign(data, padding.PKCS1v15(), hashes.SHA256())
+
+    keypairs["last"] = {
+        "private": private_key,
+        "public": public_key,
+        "signature": signature,
+        "file": filepath,
+    }
+    print("File signed. Key pair and signature stored for this session.")
+
+
+
+
+def verify_signature():
+    if "last" not in keypairs:
+        print("No signature on record yet — sign a file first.")
+        return
+
+    record = keypairs["last"]
+    filepath = input(f"Path to file to verify (Enter for '{record['file']}'): ").strip().strip('"').strip("'") or record["file"]
+
+    if not os.path.exists(filepath):
+        print("File not found.")
+        return
+
+    with open(filepath, "rb") as f:
+        data = f.read()
+
+    try:
+        record["public"].verify(record["signature"], data, padding.PKCS1v15(), hashes.SHA256())
+        print("Verified OK")
+    except Exception:
+        print("Verification FAILED — file may have been tampered with.")
+
+
+
+def main():
+
+
+    print_banner()
+    while True:
+        display_menu()
+        choice = input("Enter choice: ").strip()
+
+        if choice == "1":
+            cipher()
+        elif choice == "2":
+            hashing()
+        elif choice == "3":
+            signing()
+        elif choice == "4":
+            verify_signature()
+        elif choice == "5":
+            print("Exiting.")
+            break
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
